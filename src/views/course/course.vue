@@ -627,9 +627,11 @@ export default {
           params: { courseId: this.searchFormItem.courseId },
         })
           .then((res) => {
-            console.log(res);
-            self.coursesDisplay = [res];
-            self.tableDataLoading = false;
+            if (res && res != "") {
+              self.coursesDisplay = [res];
+            } else {
+              self.coursesDisplay = [];
+            }
           })
           .catch((error) => {
             console.log("查询失败");
@@ -660,7 +662,7 @@ export default {
             this.originalSearchFormItem.courseKeyword
             ? this.searchFormItem.courseKeyword
             : null;
-        if (courseKeyword != null) params.courseKeyword = courseKeyword;
+        if (courseKeyword != null) params.keyword = courseKeyword;
         let courseType =
           this.searchFormItem.courseType &&
           this.searchFormItem.courseType !=
@@ -675,8 +677,12 @@ export default {
           params,
         })
           .then((res) => {
-            self.searchCourses[start / self.pageSize + 1] = res;
-            self.coursesDisplay = res;
+            if (res && res != "") {
+              self.coursesDisplay = res;
+              self.searchCourses[start / self.pageSize + 1] = res;
+            } else {
+              self.coursesDisplay = [];
+            }
             self.tableDataLoading = false;
           })
           .catch((error) => {
