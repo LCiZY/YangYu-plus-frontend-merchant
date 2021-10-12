@@ -6,7 +6,7 @@
       :model="course"
       ref="courseForm"
       :rules="courseValidate"
-      :label-width="120"
+      :label-width="150"
     >
       <FormItem
         label="课程封面图"
@@ -54,9 +54,11 @@
           style="width: 300px"
           :optionList="typeOptionList"
           :value="course.courseType"
+          :needFullNode="true"
           @change="
             (s) => {
-              course.courseType = s;
+              course.courseWideType = s[0];
+              course.courseType = s.length == 1 ? s[0] : s[1];
             }
           "
           :operateVisiable="false"
@@ -147,6 +149,29 @@
               :disabled="course.courseNumNotLimit"
               maxlength="6"
               placeholder="输入-1表示无限量"
+            ></Input>
+          </Col>
+          <Col span="4" offset="1"> </Col>
+        </Row>
+      </FormItem>
+      <FormItem label="课程团单最大人数" prop="courseGroupOrderMaxNum">
+        <Row>
+          <Col span="18">
+            <Input
+              v-model="course.courseGroupOrderMaxNum"
+              maxlength="3"
+            ></Input>
+          </Col>
+          <Col span="4" offset="1"> </Col>
+        </Row>
+      </FormItem>
+      <FormItem label="课程团单持续时间" prop="courseGroupOrderHoldHours">
+        <Row>
+          <Col span="18">
+            <Input
+              v-model="course.courseGroupOrderHoldHours"
+              maxlength="6"
+              placeholder="输入-1表示不限时，直至停止售卖"
             ></Input>
           </Col>
           <Col span="4" offset="1"> </Col>
@@ -369,6 +394,7 @@ export default {
         courseId: "",
         merchantId: "",
         courseName: "",
+        courseWideType: "",
         courseType: "",
         coursePlace: "",
         courseObject: "",
@@ -385,6 +411,8 @@ export default {
         courseDDLDate: 0,
         courseMaxNum: "",
         courseRemainNum: "",
+        courseGroupOrderMaxNum: "",
+        courseGroupOrderHoldHours: "",
         courseSaleProperty: [],
 
         //以下变量仅做展示使用
@@ -451,7 +479,6 @@ export default {
         courseSalePrice: [
           {
             required: true,
-            type: "number",
             message: "课程售价不能为空",
             trigger: "blur",
           },
@@ -464,7 +491,6 @@ export default {
         courseGroupSalePrice: [
           {
             required: true,
-            type: "number",
             message: "课程拼团价不能为空",
             trigger: "blur",
           },
@@ -509,7 +535,6 @@ export default {
         courseMaxNum: [
           {
             required: true,
-            type: "number",
             message: "课程最大名额不能为空",
             trigger: "blur",
           },
@@ -522,8 +547,31 @@ export default {
         courseRemainNum: [
           {
             required: true,
-            type: "number",
             message: "课程剩余名额不能为空",
+            trigger: "blur",
+          },
+          {
+            validator: courseNumberValidator,
+            message: "格式错误",
+            trigger: "blur",
+          },
+        ],
+        courseGroupOrderMaxNum: [
+          {
+            required: true,
+            message: "课程团单最大人数不能为空",
+            trigger: "blur",
+          },
+          {
+            validator: courseNumberValidator,
+            message: "格式错误",
+            trigger: "blur",
+          },
+        ],
+        courseGroupOrderHoldHours: [
+          {
+            required: true,
+            message: "课程团单持续时间不能为空",
             trigger: "blur",
           },
           {
@@ -567,7 +615,20 @@ export default {
           // console.log(res);
           res.courseImageUrls = JSON.parse(res.courseImageUrls);
           res.courseSaleProperty = JSON.parse(res.courseSaleProperty);
+
+          // 四个number类型转string并保留小数点
+          res.courseSalePrice = new Number(res.courseSalePrice).valueOf() + "";
+          res.courseGroupSalePrice =
+            new Number(res.courseGroupSalePrice).valueOf() + "";
+          res.courseMaxNum = new Number(res.courseMaxNum).valueOf() + "";
+          res.courseRemainNum = new Number(res.courseRemainNum).valueOf() + "";
+          res.courseGroupOrderMaxNum =
+            new Number(res.courseGroupOrderMaxNum).valueOf() + "";
+          res.courseGroupOrderHoldHours =
+            new Number(res.courseGroupOrderHoldHours).valueOf() + "";
+
           self.course = res;
+          //将时间戳转换成Date类型，让timepicker显示
           self.course.applyTimes = [
             new Date(res.courseApplyDate),
             new Date(res.courseApplyDDLDate),
@@ -576,7 +637,9 @@ export default {
             new Date(res.courseDate),
             new Date(res.courseDDLDate),
           ];
+          //如果res.courseMaxNum == -1表示名额不限
           self.course.courseNumNotLimit = res.courseMaxNum == -1;
+
           console.log(self.course);
         })
         .catch((error) => {
@@ -629,6 +692,7 @@ export default {
       if (!this.isCreate) form.append("courseId", this.course.courseId);
       form.append("merchantId", localStorage.getItem("merchantId"));
       form.append("courseName", this.course.courseName);
+      form.append("courseWideType", this.course.courseWideType);
       form.append("courseType", this.course.courseType);
       form.append("coursePlace", this.course.coursePlace);
       form.append("courseObject", this.course.courseObject);
@@ -661,6 +725,18 @@ export default {
       form.append(
         "courseRemainNum",
         this.course.courseRemainNum == "" ? "0" : this.course.courseRemainNum
+      );
+      form.append(
+        "courseGroupOrderMaxNum",
+        this.course.courseGroupOrderMaxNum == ""
+          ? "0"
+          : this.course.courseGroupOrderMaxNum
+      );
+      form.append(
+        "courseGroupOrderHoldHours",
+        this.course.courseGroupOrderHoldHours == ""
+          ? "0"
+          : this.course.courseGroupOrderHoldHours
       );
       form.append(
         "courseSaleProperty",
