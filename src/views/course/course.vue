@@ -299,6 +299,7 @@ export default {
           title: "课程地点",
           key: "coursePlace",
           resizable: true,
+          tooltip: true,
           width: 180,
         },
         {
@@ -311,18 +312,21 @@ export default {
           title: "课程适合人群描述",
           key: "courseSuitableCrowd",
           resizable: true,
+          tooltip: true,
           width: 180,
         },
         {
           title: "课程简介",
           key: "courseBriefIntro",
           resizable: true,
+          tooltip: true,
           width: 180,
         },
         {
           title: "课程图片",
           key: "courseImageUrls",
           resizable: true,
+          ellipsis: true,
           width: 180,
         },
         {
@@ -425,6 +429,7 @@ export default {
           title: "课程售卖属性",
           key: "courseSaleProperty",
           resizable: true,
+          tooltip: true,
           width: 180,
         },
         {
